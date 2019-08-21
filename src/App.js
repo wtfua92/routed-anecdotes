@@ -1,26 +1,27 @@
 import React, { useState } from 'react'
+import {Route, Link, Redirect, withRouter, BrowserRouter as Router} from 'react-router-dom';
 
 const Menu = () => {
   const padding = {
     paddingRight: 5
-  }
+  };
   return (
     <div>
-      <a href='#' style={padding}>anecdotes</a>
-      <a href='#' style={padding}>create new</a>
-      <a href='#' style={padding}>about</a>
+      <Link to='/' style={padding}>anecdotes</Link>
+      <Link to='/create' style={padding}>create new</Link>
+      <Link to='/about' style={padding}>about</Link>
     </div>
   )
-}
+};
 
 const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
     <ul>
-      {anecdotes.map(anecdote => <li key={anecdote.id} >{anecdote.content}</li>)}
+      {anecdotes.map(anecdote => <li><Link key={anecdote.id} to={`/anecdotes/${anecdote.id}`} >{anecdote.content}</Link></li>)}
     </ul>
   </div>
-)
+);
 
 const About = () => (
   <div>
@@ -34,7 +35,7 @@ const About = () => (
 
     <p>Software engineering is full of excellent anecdotes, at this app you can find the best and add more.</p>
   </div>
-)
+);
 
 const Footer = () => (
   <div>
@@ -42,23 +43,24 @@ const Footer = () => (
 
     See <a href='https://github.com/fullstack-hy2019/routed-anecdotes/blob/master/src/App.js'>https://github.com/fullstack-hy2019/routed-anecdotes/blob/master/src/App.js</a> for the source code.
   </div>
-)
+);
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
+  const [content, setContent] = useState('');
+  const [author, setAuthor] = useState('');
+  const [info, setInfo] = useState('');
 
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     props.addNew({
       content,
       author,
       info,
       votes: 0
-    })
-  }
+    });
+    props.history.push('/');
+  };
 
   return (
     <div>
@@ -80,8 +82,9 @@ const CreateNew = (props) => {
       </form>
     </div>
   )
+};
 
-}
+const CreateNewWithRouter = withRouter(CreateNew);
 
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
@@ -99,39 +102,57 @@ const App = () => {
       votes: 0,
       id: '2'
     }
-  ])
+  ]);
 
-  const [notification, setNotification] = useState('')
+  const [notification, setNotification] = useState('');
 
   const addNew = (anecdote) => {
-    anecdote.id = (Math.random() * 10000).toFixed(0)
+    anecdote.id = (Math.random() * 10000).toFixed(0);
     setAnecdotes(anecdotes.concat(anecdote))
-  }
+  };
 
   const anecdoteById = (id) =>
-    anecdotes.find(a => a.id === id)
+    anecdotes.find(a => a.id === id);
 
   const vote = (id) => {
-    const anecdote = anecdoteById(id)
+    const anecdote = anecdoteById(id);
 
     const voted = {
       ...anecdote,
       votes: anecdote.votes + 1
-    }
+    };
 
     setAnecdotes(anecdotes.map(a => a.id === id ? voted : a))
-  }
+  };
 
-  return (
+
+  const AnecdoteItem = ({anecdote}) => {
+        return <div>
+            <p>{anecdote.content}</p>
+            <p>has {anecdote.votes} votes</p>
+            <button type="button" onClick={() => {vote(anecdote.id)}}>
+                vote
+            </button>
+        </div>;
+};
+
+
+    return (
     <div>
       <h1>Software anecdotes</h1>
-      <Menu />
-      <AnecdoteList anecdotes={anecdotes} />
-      <About />
-      <CreateNew addNew={addNew} />
+        <Router>
+            <Menu />
+            <Route exact path="/" render={() => (<AnecdoteList anecdotes={anecdotes} />)}/>
+            <Route exact path="/anecdotes/:id" render={({match}) => {
+                const anecdote = anecdoteById(match.params.id);
+                return <AnecdoteItem anecdote={anecdote} />
+            }}/>
+            <Route exact path="/about" render={() => (<About/>)} />
+            <Route exact path="/create" render={() => (<CreateNewWithRouter addNew={addNew} />)} />
+        </Router>
       <Footer />
     </div>
   )
-}
+};
 
 export default App;
