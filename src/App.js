@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import {Route, Link, Redirect, withRouter, BrowserRouter as Router} from 'react-router-dom';
+import {Route, Link, withRouter, BrowserRouter as Router} from 'react-router-dom';
 
 const Menu = () => {
   const padding = {
@@ -86,6 +86,10 @@ const CreateNew = (props) => {
 
 const CreateNewWithRouter = withRouter(CreateNew);
 
+const Notification = ({notification}) => <div style={{border: '1px solid black', padding: 5}}>
+    {notification}
+</div>;
+
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
@@ -108,7 +112,11 @@ const App = () => {
 
   const addNew = (anecdote) => {
     anecdote.id = (Math.random() * 10000).toFixed(0);
-    setAnecdotes(anecdotes.concat(anecdote))
+    setAnecdotes(anecdotes.concat(anecdote));
+    setNotification(`You've added '${anecdote.content}'`);
+    setTimeout(() => {
+        setNotification('');
+    }, 10000);
   };
 
   const anecdoteById = (id) =>
@@ -139,6 +147,7 @@ const App = () => {
 
     return (
     <div>
+      {notification && <Notification notification={notification} />}
       <h1>Software anecdotes</h1>
         <Router>
             <Menu />
